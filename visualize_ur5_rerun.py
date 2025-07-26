@@ -146,8 +146,8 @@ def visualize_ur5_dataset(
             timestamp = batch["timestamp"][i].item()
             
             # Set timeline
-            rr.set_time_sequence("frame", frame_idx)
-            rr.set_time_seconds("timestamp", timestamp)
+            rr.set_time("frame", sequence=frame_idx)
+            rr.set_time("timestamp", timestamp=timestamp)
             
             # Log camera images if available
             for camera_key in dataset.meta.camera_keys:
@@ -161,7 +161,7 @@ def visualize_ur5_dataset(
                 
                 # Log individual joint values
                 for joint_idx, joint_pos in enumerate(joint_positions):
-                    rr.log(f"robot_state/joint_{joint_idx}", rr.Scalar(joint_pos))
+                    rr.log(f"robot_state/joint_{joint_idx}", rr.Scalars(joint_pos))
                 
                 # Compute and visualize end-effector position
                 if len(joint_positions) >= 6:
@@ -187,9 +187,9 @@ def visualize_ur5_dataset(
                 action_labels = ['dx', 'dy', 'dz', 'drx', 'dry', 'drz', 'gripper']
                 for action_idx, (action_val, label) in enumerate(zip(action, action_labels)):
                     if action_idx < len(action_labels):
-                        rr.log(f"actions/{label}", rr.Scalar(action_val))
+                        rr.log(f"actions/{label}", rr.Scalars(action_val))
                     else:
-                        rr.log(f"actions/dim_{action_idx}", rr.Scalar(action_val))
+                        rr.log(f"actions/dim_{action_idx}", rr.Scalars(action_val))
                 
                 # Visualize action as arrow in 3D (translation component)
                 if len(action) >= 3:
@@ -211,30 +211,30 @@ def visualize_ur5_dataset(
                 state = batch["observation.state"][i].numpy()
                 if len(state) > 6:  # Assuming gripper state is last element
                     gripper_state = state[-1]
-                    rr.log("robot_state/gripper", rr.Scalar(gripper_state))
+                    rr.log("robot_state/gripper", rr.Scalars(gripper_state))
             
             # Log episode metadata
-            rr.log("episode_info/frame_index", rr.Scalar(frame_idx))
-            rr.log("episode_info/timestamp", rr.Scalar(timestamp))
+            rr.log("episode_info/frame_index", rr.Scalars(frame_idx))
+            rr.log("episode_info/timestamp", rr.Scalars(timestamp))
             
             # Log any additional fields
             for key in batch:
                 if key not in ["index", "frame_index", "timestamp", "observation.state", "action"] and not key.startswith("observation.images"):
                     value = batch[key][i]
                     if hasattr(value, 'numel') and value.numel() == 1:  # Scalar tensor values
-                        rr.log(f"metadata/{key}", rr.Scalar(value.item()))
+                        rr.log(f"metadata/{key}", rr.Scalars(value.item()))
                     elif isinstance(value, (int, float)):  # Direct scalar values
-                        rr.log(f"metadata/{key}", rr.Scalar(value))
+                        rr.log(f"metadata/{key}", rr.Scalars(value))
                     # Skip string values and complex tensors
     
     # Log final trajectory statistics
     if end_effector_positions:
         trajectory = np.array(end_effector_positions)
-        rr.log("trajectory_stats/total_distance", rr.Scalar(
+        rr.log("trajectory_stats/total_distance", rr.Scalars(
             np.sum(np.linalg.norm(np.diff(trajectory, axis=0), axis=1))
         ))
-        rr.log("trajectory_stats/max_position", rr.Scalar(np.max(trajectory)))
-        rr.log("trajectory_stats/min_position", rr.Scalar(np.min(trajectory)))
+        rr.log("trajectory_stats/max_position", rr.Scalars(np.max(trajectory)))
+        rr.log("trajectory_stats/min_position", rr.Scalars(np.min(trajectory)))
     
     # Save if requested
     if save_path:

@@ -56,7 +56,7 @@ def visualize_ur5_cameras_only(
     
     # Serve web interface
     if save_path is None:
-        rr.serve_web(open_browser=True, web_port=0, ws_port=0)
+        rr.serve_web_viewer(open_browser=True, web_port=0)
     
     logging.info("Processing camera frames...")
     
@@ -66,8 +66,8 @@ def visualize_ur5_cameras_only(
             timestamp = batch["timestamp"][i].item()
             
             # Set timeline
-            rr.set_time_sequence("frame", frame_idx)
-            rr.set_time_seconds("timestamp", timestamp)
+            rr.set_time("frame", sequence=frame_idx)
+            rr.set_time("timestamp", timestamp=timestamp)
             
             # Log ONLY camera images
             for camera_key in dataset.meta.camera_keys:
